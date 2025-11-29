@@ -1,149 +1,58 @@
 #include "main.h"
-kjdxa flksadj lifjeis
-MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
-MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
+#include "lemlib/api.hpp"
 
-Drivetrain drivetrain(&left_motors, // left motor group
-                              &right_motors, // right motor group
-                              11.75, // 10 inch track width
-                              Omniwheel::NEW_325, // using new 4" omnis
-                              450, // drivetrain rpm is 360
-                              2 // horizontal drift is 2 (for now)
-);
-
-Imu imu(20);
-
-// Tracking wheels //
-
-// Sensors for tracking wheels
-Rotation horizontal_tracking_sensor(-9);
-
-Rotation vertical_tracking_sensor(-10);
-
-// Setup tracking wheels
-TrackingWheel horizontal_tracking_wheel(&horizontal_tracking_sensor, 
-												Omniwheel::NEW_325, 
-												-2.5
-);
-
-TrackingWheel vertical_tracking_wheel(&vertical_tracking_sensor, 
-												Omniwheel::NEW_325, 
-												0
-);
-
-// --- ODOMETRY --- //
-
-// Setup odom
-OdomSensors sensors(&vertical_tracking_wheel, // vertical tracking wheel 1
-                            nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
-                            &horizontal_tracking_wheel, // horizontal tracking wheel 1
-                            nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
-                            &imu // inertial sensor
-);
-
-// --- PID --- //
-
-// lateral PID controller
-ControllerSettings lateral_controller(10, // proportional gain (kP)
-                                              0, // integral gain (kI)
-                                              3, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in inches
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in inches
-                                              500, // large error range timeout, in milliseconds
-                                              20 // maximum acceleration (slew)
-);
-
-// angular PID controller
-ControllerSettings angular_controller(2, // proportional gain (kP)
-                                              0, // integral gain (kI)
-                                              10, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in degrees
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in degrees
-                                              500, // large error range timeout, in milliseconds
-                                              0 // maximum acceleration (slew)
-);
-
-// input curve for throttle input during driver control
-lemlib::ExpoDriveCurve throttle_curve(8, // joystick deadband out of 127
-                                     13, // minimum output where drivetrain will move out of 127
-                                     1.02 // expo curve gain
-);
-
-// input curve for steer input during driver control
-lemlib::ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
-                                  18, // minimum output where drivetrain will move out of 127
-                                  1.02 // expo curve gain
-);
-
-Chassis chassis(drivetrain, // drivetrain settings
-                        lateral_controller, // lateral PID settings
-                        angular_controller, // angular PID settings
-                        sensors, // odometry sensors
-						&throttle_curve, // throttle input curve
-						&steer_curve // steer input curve
-);
-
-Controller controller(pros::E_CONTROLLER_MASTER);
-
-Motor stage1_intake_motor(7, MotorGearset::blue); // stage 1 intake motor on port 7
-Motor stage2_intake_motor(8, MotorGearset::blue); // stage 2 intake motor on port 8
-
-adi::Pneumatics trapdoor('C', true);
-adi::Pneumatics match_load('G', true);
-adi::Pneumatics wing_descore('E', false);
+pros::MotorGroup left_motors({1, 2, 3});
+pros::MotorGroup right_motors({4, 5, 6});
 
 // --- HELPER FUNCTIONS --- //
 
-void trapdoor_move(bool open_close){
-        trapdoor.set_value(!open_close);
-}
-void match_load_move(bool down_up){
-        match_load.set_value(down_up);
-}
-void wing_descore_move(bool up_down){
-        wing_descore.set_value(up_down);
-}
-void intake_stg1_move(bool intake){
-        if (intake){
-                stage1_intake_motor.move_velocity(600);
-        }
-        else{
-                stage1_intake_motor.move_velocity(-600);
-        }
-}
-void intake_stg2_move(bool cycle){
-        if (cycle){
-                stage2_intake_motor.move_velocity(600);
-        }
-        else{
-                stage2_intake_motor.move_velocity(-600);
-        }
-}
+// void trapdoor_move(bool open_close){
+//         trapdoor.set_value(!open_close);
+// }
+// void match_load_move(bool down_up){
+//         match_load.set_value(down_up);
+// }
+// void wing_descore_move(bool up_down){
+//         wing_descore.set_value(up_down);
+// }
+// void intake_stg1_move(bool intake){
+//         if (intake){
+//                 stage1_intake_motor.move_velocity(600);
+//         }
+//         else{
+//                 stage1_intake_motor.move_velocity(-600);
+//         }
+// }
+// void intake_stg2_move(bool cycle){
+//         if (cycle){
+//                 stage2_intake_motor.move_velocity(600);
+//         }
+//         else{
+//                 stage2_intake_motor.move_velocity(-600);
+//         }
+// }
 
-void intake_stg1_stop(){
-        stage1_intake_motor.move_velocity(0);
-}
-void intake_stg2_stop(){
-        stage2_intake_motor.move_velocity(0);
-}
-void intake_stg1_move_velocity_percent(int velocity){
-        stage1_intake_motor.move_velocity(velocity*6);
-}
-void intake_stg2_move_velocity_percent(int velocity){
-        stage2_intake_motor.move_velocity(velocity*6);
-}
+// void intake_stg1_stop(){
+//         stage1_intake_motor.move_velocity(0);
+// }
+// void intake_stg2_stop(){
+//         stage2_intake_motor.move_velocity(0);
+// }
+// void intake_stg1_move_velocity_percent(int velocity){
+//         stage1_intake_motor.move_velocity(velocity*6);
+// }
+// void intake_stg2_move_velocity_percent(int velocity){
+//         stage2_intake_motor.move_velocity(velocity*6);
+// }
 
-int loop_delay_ms = 20;
-bool intake_stg3_O_F = false;
-bool trapdoor_O_F = false;
-bool loader_O_F = false;
-bool intake_stg2_O_F = false;
-bool wing_descore_O_F = false;
+// int loop_delay_ms = 20;
+// bool intake_stg3_O_F = false;
+// bool trapdoor_O_F = false;
+// bool loader_O_F = false;
+// bool intake_stg2_O_F = false;
+// bool wing_descore_O_F = false;
 
+// 
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -153,15 +62,15 @@ bool wing_descore_O_F = false;
  */
 void initialize() {
         lcd::initialize();
-        chassis.calibrate(); // calibrate sensors
+        // chassis.calibrate(); // calibrate sensors  // Change later
     
         // print position to brain screen
         pros::Task screen_task([&]() {
                 while (true) {
                         // print robot location to the brain screen
-                        pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
-                        pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
-                        pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
+                        // pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
+                        // pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
+                        // pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
                         // delay to save resources
                         pros::delay(20);
                 }
@@ -214,71 +123,71 @@ void autonomous() {
  * operator control task will be stopped. Re-enabling the robot will restart the
  * task, not resume it from where it left off.
  */
-void opcontrol() {
-	while (true) {
+// void opcontrol() {
+	// while (true) {
         // get left y and right x positions
-        int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-        int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+        // int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+        // int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
-                if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
-                        intake_stg2_move(true);
-                }
-                else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
-                        intake_stg2_move(false);
-                }
-                else{
-                        intake_stg2_stop();
-                }
+        //         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
+        //                 intake_stg2_move(true);
+        //         }
+        //         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
+        //                 intake_stg2_move(false);
+        //         }
+        //         else{
+        //                 intake_stg2_stop();
+        //         }
                 
-                if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
-                        intake_stg1_move(true);
-                }
-                else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)){
-                        intake_stg1_move(false);
-                }
-                else{
-                        intake_stg1_stop();
-                }
+        //         if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
+        //                 intake_stg1_move(true);
+        //         }
+        //         else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)){
+        //                 intake_stg1_move(false);
+        //         }
+        //         else{
+        //                 intake_stg1_stop();
+                // }
 
 
-                if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)){
-                        if (!trapdoor_O_F){
-                                trapdoor_move(true);
-                                trapdoor_O_F = true;
-                        }
-                        else{
-                                trapdoor_move(false);
-                                trapdoor_O_F = false;
-                        }
-                }
-                if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)){
-                        if (!loader_O_F){
-                                match_load_move(true);
-                                loader_O_F = true;
-                        }
-                        else{
-                                match_load_move(false);
-                                loader_O_F = false;
-                        }
-                }
-                if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)){
-                        if(!wing_descore_O_F){
-                                wing_descore_move(true);
-                                wing_descore_O_F = true;
-                        }
-                        else{
-                                wing_descore_move(false);
-                                wing_descore_O_F = false;
-                        }
-                }
+//                 // if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)){
+//                 //         if (!trapdoor_O_F){
+//                 //                 trapdoor_move(true);
+//                 //                 trapdoor_O_F = true;
+//                 //         }
+//                 //         else{
+//                 //                 trapdoor_move(false);
+//                 //                 trapdoor_O_F = false;
+//                 //         }
+//                 // }
+//                 // if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)){
+//                 //         if (!loader_O_F){
+//                 //                 match_load_move(true);
+//                 //                 loader_O_F = true;
+//                 //         }
+//                 //         else{
+//                 //                 match_load_move(false);
+//                 //                 loader_O_F = false;
+//                 //         }
+//                 // }
+//                 // if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)){
+//                 //         if(!wing_descore_O_F){
+//                 //                 wing_descore_move(true);
+//                 //                 wing_descore_O_F = true;
+//                 //         }
+//                 //         else{
+//                 //                 wing_descore_move(false);
+//                 //                 wing_descore_O_F = false;
+//                 //         }
+//                 }
 		
-		// move the robot
-        chassis.curvature(leftY, rightX);
+// 		// move the robot
+//         // chassis.curvature(leftY, rightX);
 
-        // delay to save resources
-        pros::delay(25);
-    }
-}
+//         // delay to save resources
+//         pros::delay(25);
+//     }
+// }
 /*
 Ports + intended controllers
 123 - left Drive motors
