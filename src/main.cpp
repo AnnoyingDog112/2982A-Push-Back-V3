@@ -1,7 +1,7 @@
 #include "main.h"
 #include "lemlib/api.hpp"
 
-pros::MotorGroup left_motors({1, 2, 3});
+pros::MotorGroup left_motors({-1, -2, -3}, pros::MotorGearset::red);
 pros::MotorGroup right_motors({4, 5, 6});
 
 // --- HELPER FUNCTIONS --- //
