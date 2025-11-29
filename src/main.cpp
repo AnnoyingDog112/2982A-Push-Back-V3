@@ -1,4 +1,5 @@
 #include "main.h"
+#include "Lemlib_PID_tuning/pid_tuning.hpp"
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -152,21 +153,21 @@ bool wing_descore_O_F = false;
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	lcd::initialize();
+    lcd::initialize();
     chassis.calibrate(); // calibrate sensors
     
-	// print position to brain screen
+    // print position to brain screen
     pros::Task screen_task([&]() {
         while (true) {
             // print robot location to the brain screen
             pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
             pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
             pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
-            
-			// delay to save resources
+	    // delay to save resources
             pros::delay(20);
         }
     });
+    autonomous();
 }
 
 /**
@@ -198,7 +199,12 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+        start_angular_pid_logging_task(&chassis, &imu, 
+                                        angular_controller, 90, 
+                                        5000, 20
+        );
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task

@@ -42,7 +42,7 @@
 //#include "okapi/api.hpp"
 
 #include "lemlib/api.hpp" // IWYU pragma: keep
-
+#include "Lemlib_PID_tuning/pid_tuning.hpp" // IWYU pragma: keep
 
 /**
  * If you find doing pros::Motor() to be tedious and you'd prefer just to do
