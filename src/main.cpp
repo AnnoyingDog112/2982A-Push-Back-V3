@@ -1,5 +1,8 @@
 #include "main.h"
 #include "Lemlib_PID_tuning/pid_tuning.hpp"
+#include "lemlib/chassis/chassis.hpp"
+#include "pros/motor_group.hpp"
+#include "pros/motors.h"
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -11,7 +14,6 @@ Drivetrain drivetrain(&left_motors, // left motor group
                               450, // drivetrain rpm is 360
                               2 // horizontal drift is 2 (for now)
 );
-
 Imu imu(20);
 
 // Tracking wheels //
@@ -58,13 +60,13 @@ ControllerSettings lateral_controller(10, // proportional gain (kP)
 
 // angular PID controller
 ControllerSettings angular_controller(2, // proportional gain (kP)
-                                              0, // integral gain (kI)
-                                              10, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in degrees
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in degrees
-                                              500, // large error range timeout, in milliseconds
+                                              0.0, // integral gain (kI)
+                                              14, // derivative gain (kD)
+                                              1.5, // anti windup
+                                              0, // small error range, in degrees
+                                              0, // small error range timeout, in milliseconds
+                                              0, // large error range, in degrees
+                                              0, // large error range timeout, in milliseconds
                                               0 // maximum acceleration (slew)
 );
 
@@ -202,7 +204,7 @@ void competition_initialize() {}
 void autonomous() {
         start_angular_pid_logging_task(&chassis, &imu, 
                                         angular_controller, 90, 
-                                        5000, 20
+                                        10000, 20
         );
 }
 
