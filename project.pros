@@ -1,7 +1,7 @@
 {
     "py/object": "pros.conductor.project.Project",
     "py/state": {
-        "project_name": "2982A Push Back V3",
+        "project_name": "Drive Code",
         "target": "v5",
         "templates": {
             "LemLib": {
@@ -46,6 +46,23 @@
                 "target": "v5",
                 "user_files": [],
                 "version": "0.5.6"
+            },
+            "Lemlib_PID_tuning": {
+                "location": "/Users/boen/Library/Application Support/PROS/templates/Lemlib_PID_tuning@1.0.2",
+                "metadata": {
+                    "origin": "local"
+                },
+                "name": "Lemlib_PID_tuning",
+                "py/object": "pros.conductor.templates.local_template.LocalTemplate",
+                "supported_kernels": "^4.2.1",
+                "system_files": [
+                    "firmware/Lemlib_PID_tuning.a",
+                    "include/Lemlib_PID_tuning/pid_tuning.hpp",
+                    "include/Lemlib_PID_tuning/Lemlib_pid-logging.hpp"
+                ],
+                "target": "v5",
+                "user_files": [],
+                "version": "1.0.2"
             },
             "kernel": {
                 "location": "/Users/boen/Library/Application Support/PROS/templates/kernel@4.2.1",
@@ -634,7 +651,9 @@
                 "version": "9.2.0"
             }
         },
-        "upload_options": {},
+        "upload_options": {
+            "description": "Drive Code"
+        },
         "use_early_access": false
     }
 }
