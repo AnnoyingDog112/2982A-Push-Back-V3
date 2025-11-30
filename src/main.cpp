@@ -59,11 +59,11 @@ ControllerSettings lateral_controller(10, // proportional gain (kP)
 ControllerSettings angular_controller(2, // proportional gain (kP)
                                               0, // integral gain (kI)
                                               10, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in degrees
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in degrees
-                                              500, // large error range timeout, in milliseconds
+                                              0, // anti windup
+                                              0, // small error range, in degrees
+                                              0, // small error range timeout, in milliseconds
+                                              0, // large error range, in degrees
+                                              0, // large error range timeout, in milliseconds
                                               0 // maximum acceleration (slew)
 );
 
@@ -89,12 +89,12 @@ Chassis chassis(drivetrain, // drivetrain settings
 
 Controller controller(pros::E_CONTROLLER_MASTER);
 
-Motor stage1_intake_motor(7, MotorGearset::blue); // stage 1 intake motor on port 7
-Motor stage2_intake_motor(8, MotorGearset::blue); // stage 2 intake motor on port 8
+Motor intake1(7, MotorGearset::blue); // stage 1 intake motor on port 7
+Motor intake2(8, MotorGearset::blue); // stage 2 intake motor on port 8
 
-adi::Pneumatics trapdoor('C', true);
-adi::Pneumatics match_load('G', true);
-adi::Pneumatics wing_descore('E', false);
+pros::adi::Pneumatics trapdoor('C', true);
+pros::adi::Pneumatics match_load('G', true);
+pros::adi::Pneumatics wing_descore('E', false);
 
 // --- HELPER FUNCTIONS --- //
 
@@ -107,34 +107,34 @@ void match_load_move(bool down_up){
 void wing_descore_move(bool up_down){
         wing_descore.set_value(up_down);
 }
-void intake_stg1_move(bool intake){
+void intake1_move(bool intake){
         if (intake){
-                stage1_intake_motor.move_velocity(600);
+                intake1.move_velocity(600);
         }
         else{
-                stage1_intake_motor.move_velocity(-600);
+                intake1.move_velocity(-600);
         }
 }
-void intake_stg2_move(bool cycle){
+void intake2_move(bool cycle){
         if (cycle){
-                stage2_intake_motor.move_velocity(600);
+                intake2.move_velocity(600);
         }
         else{
-                stage2_intake_motor.move_velocity(-600);
+                intake2.move_velocity(-600);
         }
 }
 
-void intake_stg1_stop(){
-        stage1_intake_motor.move_velocity(0);
+void intake1_stop(){
+        intake1.move_velocity(0);
 }
-void intake_stg2_stop(){
-        stage2_intake_motor.move_velocity(0);
+void intake2_stop(){
+        intake2.move_velocity(0);
 }
-void intake_stg1_move_velocity_percent(int velocity){
-        stage1_intake_motor.move_velocity(velocity*6);
+void intake1_move_velocity_percent(int velocity){
+        intake1.move_velocity(velocity*6);
 }
-void intake_stg2_move_velocity_percent(int velocity){
-        stage2_intake_motor.move_velocity(velocity*6);
+void intake2_move_velocity_percent(int velocity){
+        intake2.move_velocity(velocity*6);
 }
 
 int loop_delay_ms = 20;
@@ -166,7 +166,7 @@ void initialize() {
                         pros::delay(20);
                 }
         });
-        // autonomous();
+        autonomous();
 }
 
 /**
@@ -199,6 +199,7 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
+	chassis.setPose(0, 0, 0); // set starting pose
 }
 
 /**
@@ -221,23 +222,23 @@ void opcontrol() {
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
                 if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
-                        intake_stg2_move(true);
+                        intake2_move(true);
                 }
                 else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
-                        intake_stg2_move(false);
+                        intake2_move(false);
                 }
                 else{
-                        intake_stg2_stop();
+                        intake2_stop();
                 }
                 
                 if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
-                        intake_stg1_move(true);
+                        intake1_move(true);
                 }
                 else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)){
-                        intake_stg1_move(false);
+                        intake1_move(false);
                 }
                 else{
-                        intake_stg1_stop();
+                        intake1_stop();
                 }
 
 
