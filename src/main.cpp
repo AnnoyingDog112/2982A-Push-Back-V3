@@ -1,4 +1,5 @@
 #include "main.h"
+#include "lemlib/chassis/chassis.hpp"
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -58,8 +59,8 @@ ControllerSettings lateral_controller(10, // proportional gain (kP)
 // angular PID controller
 ControllerSettings angular_controller(2, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              10, // derivative gain (kD)
-                                              0, // anti windup
+                                              14, // derivative gain (kD)
+                                              1.5, // anti windup
                                               0, // small error range, in degrees
                                               0, // small error range timeout, in milliseconds
                                               0, // large error range, in degrees
