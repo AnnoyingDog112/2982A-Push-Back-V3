@@ -49,13 +49,13 @@ OdomSensors sensors(&vertical_tracking_wheel, // vertical tracking wheel 1
 // lateral PID controller
 ControllerSettings lateral_controller(10, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              3, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in inches
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in inches
-                                              500, // large error range timeout, in milliseconds
-                                              20 // maximum acceleration (slew)
+                                              9, // derivative gain (kD)
+                                              0, // anti windup
+                                              0, // small error range, in inches
+                                              00, // small error range timeout, in milliseconds
+                                              0, // large error range, in inches
+                                              00, // large error range timeout, in milliseconds
+                                              0 // maximum acceleration (slew)
 );
 
 // angular PID controller
@@ -202,8 +202,8 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-        start_angular_pid_logging_task(&chassis, &imu, 
-                                        angular_controller, 90, 
+        start_lateral_pid_logging_task(&chassis, &imu, 
+                                        lateral_controller, 24, 
                                         10000, 20
         );
 }
