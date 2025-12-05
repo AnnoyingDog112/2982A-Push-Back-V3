@@ -1,11 +1,8 @@
 #include "main.h"
-#include "pros/rtos.hpp"
-// #include "Lemlib_PID_tuning/pid_tuning.hpp" // IWYU pragma: keep
-// #include "lemlib/chassis/chassis.hpp"
-// #include "pros/motor_group.hpp"
-// #include "lemlib/api.hpp" // IWYU pragma: keep
-// #include "pros/motors.h" // IWYU pragma: keep
-// #include "api.h" // IWYU pragma: keep
+#include "Lemlib_PID_tuning/pid_tuning.hpp"
+#include "lemlib/chassis/chassis.hpp"
+#include "pros/motor_group.hpp"
+#include "pros/motors.h"
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -17,7 +14,6 @@ Drivetrain drivetrain(&left_motors, // left motor group
                               450, // drivetrain rpm is 360
                               2 // horizontal drift is 2 (for now)
 );
-
 Imu imu(20);
 
 // Tracking wheels //
@@ -58,16 +54,15 @@ ControllerSettings lateral_controller(10, // proportional gain (kP)
                                               9, // derivative gain (kD)
                                               0, // anti windup
                                               0, // small error range, in inches
-                                              0, // small error range timeout, in milliseconds
+                                              00, // small error range timeout, in milliseconds
                                               0, // large error range, in inches
-                                              0, // large error range timeout, in milliseconds
-                                              50 // maximum acceleration (slew)
-											  
+                                              00, // large error range timeout, in milliseconds
+                                              0 // maximum acceleration (slew)
 );
 
 // angular PID controller
 ControllerSettings angular_controller(2, // proportional gain (kP)
-                                              0, // integral gain (kI)
+                                              0.0, // integral gain (kI)
                                               14, // derivative gain (kD)
                                               1.5, // anti windup
                                               0, // small error range, in degrees
@@ -222,6 +217,10 @@ void autonomous() {
         intake2_move(false);
         intake1_move(false);
         chassis.moveToPoint(-47, 47, 10000);
+        start_lateral_pid_logging_task(&chassis, &imu, 
+                                        lateral_controller, 24, 
+                                        10000, 20
+        );
 }
 
 /**
