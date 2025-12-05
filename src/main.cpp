@@ -1,8 +1,11 @@
 #include "main.h"
-#include "Lemlib_PID_tuning/pid_tuning.hpp"
-#include "lemlib/chassis/chassis.hpp"
-#include "pros/motor_group.hpp"
-// #include "pros/motors.h"
+#include "pros/rtos.hpp"
+// #include "Lemlib_PID_tuning/pid_tuning.hpp" // IWYU pragma: keep
+// #include "lemlib/chassis/chassis.hpp"
+// #include "pros/motor_group.hpp"
+// #include "lemlib/api.hpp" // IWYU pragma: keep
+// #include "pros/motors.h" // IWYU pragma: keep
+// #include "api.h" // IWYU pragma: keep
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -24,15 +27,17 @@ Rotation horizontal_tracking_sensor(-9);
 
 Rotation vertical_tracking_sensor(-10);
 
+// ASSET(2982A_Skills_Auto_V3_txt);
+
 // Setup tracking wheels
 TrackingWheel horizontal_tracking_wheel(&horizontal_tracking_sensor, 
-												Omniwheel::NEW_325, 
-												-2.5
+						Omniwheel::NEW_325, 
+						-2.5
 );
 
 TrackingWheel vertical_tracking_wheel(&vertical_tracking_sensor, 
-												Omniwheel::NEW_325, 
-												0
+        Omniwheel::NEW_325, 
+             0
 );
 
 // --- ODOMETRY --- //
@@ -50,13 +55,14 @@ OdomSensors sensors(&vertical_tracking_wheel, // vertical tracking wheel 1
 // lateral PID controller
 ControllerSettings lateral_controller(10, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              3, // derivative gain (kD)
+                                              9, // derivative gain (kD)
                                               0, // anti windup
                                               0, // small error range, in inches
                                               0, // small error range timeout, in milliseconds
                                               0, // large error range, in inches
                                               0, // large error range timeout, in milliseconds
-                                              0 // maximum acceleration (slew)
+                                              50 // maximum acceleration (slew)
+											  
 );
 
 // angular PID controller
@@ -98,7 +104,7 @@ Motor intake2(8, MotorGearset::blue); // stage 2 intake motor on port 8
 
 pros::adi::Pneumatics trapdoor('C', true);
 pros::adi::Pneumatics match_load('G', true);
-pros::adi::Pneumatics wing_descore('E', false);
+pros::adi::Pneumatics wing_descore('E', true);
 
 // --- HELPER FUNCTIONS --- //
 
@@ -127,7 +133,6 @@ void intake2_move(bool cycle){
                 intake2.move_velocity(-600);
         }
 }
-
 void intake1_stop(){
         intake1.move_velocity(0);
 }
@@ -158,7 +163,6 @@ bool wing_descore_O_F = false;
 void initialize() {
         lcd::initialize();
         chassis.calibrate(); // calibrate sensors
-    
         // print position to brain screen
         pros::Task screen_task([&]() {
                 while (true) {
@@ -202,10 +206,22 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+
 void autonomous() {
-	start_lateral_pid_logging_task();
-	chassis.setPose(0, 0, 0); // set starting pose
-	chassis.moveToPoint(0, 36, 10000); // drive to (36, 0)
+	chassis.setPose(-48.634, 15.888, 0); // set starting pose
+        // chassis.calibrate();
+        intake1_move(true);
+        intake2_move(true);
+        wing_descore_move(true);
+	// chassis.moveToPose(-63, 47, 270, 10000);
+        chassis.moveToPoint(-50, 47, 10000);
+        chassis.turnToHeading(-270, 5000);
+        match_load_move(true);
+        chassis.moveToPoint(-63, 47, 5000);
+        pros::delay(2000);
+        intake2_move(false);
+        intake1_move(false);
+        chassis.moveToPoint(-47, 47, 10000);
 }
 
 /**
