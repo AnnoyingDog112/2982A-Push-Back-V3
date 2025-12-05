@@ -1,5 +1,8 @@
 #include "main.h"
+#include "Lemlib_PID_tuning/pid_tuning.hpp"
 #include "lemlib/chassis/chassis.hpp"
+#include "pros/motor_group.hpp"
+// #include "pros/motors.h"
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -48,12 +51,12 @@ OdomSensors sensors(&vertical_tracking_wheel, // vertical tracking wheel 1
 ControllerSettings lateral_controller(10, // proportional gain (kP)
                                               0, // integral gain (kI)
                                               3, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in inches
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in inches
-                                              500, // large error range timeout, in milliseconds
-                                              20 // maximum acceleration (slew)
+                                              0, // anti windup
+                                              0, // small error range, in inches
+                                              0, // small error range timeout, in milliseconds
+                                              0, // large error range, in inches
+                                              0, // large error range timeout, in milliseconds
+                                              0 // maximum acceleration (slew)
 );
 
 // angular PID controller
@@ -200,7 +203,9 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
+	start_lateral_pid_logging_task();
 	chassis.setPose(0, 0, 0); // set starting pose
+	chassis.moveToPoint(0, 36, 10000); // drive to (36, 0)
 }
 
 /**
