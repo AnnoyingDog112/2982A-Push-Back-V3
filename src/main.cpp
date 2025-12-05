@@ -1,8 +1,8 @@
 #include "main.h"
-#include "Lemlib_PID_tuning/pid_tuning.hpp"
-#include "lemlib/chassis/chassis.hpp"
-#include "pros/motor_group.hpp"
-#include "pros/motors.h"
+
+
+
+ASSET(A2982A_Skills_Auto_V3_txt);
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -23,7 +23,6 @@ Rotation horizontal_tracking_sensor(-9);
 
 Rotation vertical_tracking_sensor(-10);
 
-// ASSET(2982A_Skills_Auto_V3_txt);
 
 // Setup tracking wheels
 TrackingWheel horizontal_tracking_wheel(&horizontal_tracking_sensor, 
@@ -73,13 +72,13 @@ ControllerSettings angular_controller(2, // proportional gain (kP)
 );
 
 // input curve for throttle input during driver control
-lemlib::ExpoDriveCurve throttle_curve(8, // joystick deadband out of 127
+ExpoDriveCurve throttle_curve(8, // joystick deadband out of 127
                                      13, // minimum output where drivetrain will move out of 127
                                      1.02 // expo curve gain
 );
 
 // input curve for steer input during driver control
-lemlib::ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
+ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
                                   18, // minimum output where drivetrain will move out of 127
                                   1.02 // expo curve gain
 );
@@ -204,23 +203,19 @@ void competition_initialize() {}
 
 void autonomous() {
 	chassis.setPose(-48.634, 15.888, 0); // set starting pose
-        // chassis.calibrate();
-        intake1_move(true);
-        intake2_move(true);
-        wing_descore_move(true);
+        chassis.follow(A2982A_Skills_Auto_V3_txt, 10, 5000, true, true);
+        // intake1_move(true);
+        // intake2_move(true);
+        // wing_descore_move(true);
 	// chassis.moveToPose(-63, 47, 270, 10000);
-        chassis.moveToPoint(-50, 47, 10000);
-        chassis.turnToHeading(-270, 5000);
-        match_load_move(true);
-        chassis.moveToPoint(-63, 47, 5000);
-        pros::delay(2000);
-        intake2_move(false);
-        intake1_move(false);
-        chassis.moveToPoint(-47, 47, 10000);
-        start_lateral_pid_logging_task(&chassis, &imu, 
-                                        lateral_controller, 24, 
-                                        10000, 20
-        );
+        // // chassis.moveToPoint(-50, 47, 10000);
+        // // chassis.turnToHeading(270, 5000);
+        // match_load_move(true);
+        // chassis.moveToPoint(-63, 47, 5000);
+        // pros::delay(2000);
+        // intake2_move(false);
+        // intake1_move(false);
+        // chassis.moveToPoint(-47, 47, 10000);
 }
 
 /**
