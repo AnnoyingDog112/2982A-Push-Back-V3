@@ -19,9 +19,9 @@ Imu imu(20);
 // Tracking wheels //
 
 // Sensors for tracking wheels
-Rotation horizontal_tracking_sensor(-9);
+pros::Rotation horizontal_tracking_sensor(-9);
 
-Rotation vertical_tracking_sensor(-10);
+pros::Rotation vertical_tracking_sensor(-10);
 
 
 // Setup tracking wheels
@@ -161,8 +161,7 @@ void initialize() {
         chassis.calibrate(true); // calibrate sensors
         // print position to brain screen
         chassis.setPose(0, 0, 0); // set starting pose
-        pros::Task screen_task([&]() {
-                while (true) {
+        while (true) {
                         // print robot location to the brain screen
                         pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
                         pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
@@ -172,12 +171,28 @@ void initialize() {
                         pros::lcd::print(3, "Horizontal Rotation Sensor: %i", horizontal_tracking_sensor.get_position());
                         // print measurements from the vertical rotation sensor
                         pros::lcd::print(4, "Vertial Rotation Sensor: %i", vertical_tracking_sensor.get_position());
+                        
 
                         // delay to save resources
                         pros::delay(20);
                 }
-        });
-        autonomous();
+        // pros::Task screen_task([&]() {
+        //         while (true) {
+        //                 // print robot location to the brain screen
+        //                 pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
+        //                 pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
+        //                 pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
+                        
+        //                 // print measurements from the horizontal rotation sensor
+        //                 pros::lcd::print(3, "Horizontal Rotation Sensor: %i", horizontal_tracking_sensor.get_position());
+        //                 // print measurements from the vertical rotation sensor
+        //                 pros::lcd::print(4, "Vertial Rotation Sensor: %i", vertical_tracking_sensor.get_position());
+
+        //                 // delay to save resources
+        //                 pros::delay(20);
+                // }
+        // });
+        // autonomous();
 }
 
 /**
