@@ -1,8 +1,4 @@
 #include "main.h"
-#include "Lemlib_PID_tuning/pid_tuning.hpp"
-#include "lemlib/chassis/chassis.hpp"
-#include "pros/motor_group.hpp"
-#include "pros/motors.h"
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -96,7 +92,7 @@ Motor stage1_intake_motor(7, MotorGearset::blue); // stage 1 intake motor on por
 Motor stage2_intake_motor(8, MotorGearset::blue); // stage 2 intake motor on port 8
 
 adi::Pneumatics trapdoor('C', true);
-adi::Pneumatics match_load('G', true);
+adi::Pneumatics match_load('G', false);
 adi::Pneumatics wing_descore('E', false);
 
 // --- HELPER FUNCTIONS --- //
@@ -202,10 +198,10 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-        start_lateral_pid_logging_task(&chassis, &imu, 
-                                        lateral_controller, 24, 
-                                        10000, 20
-        );
+        // start_lateral_pid_logging_task(&chassis, &imu, 
+        //                                 lateral_controller, 24, 
+        //                                 10000, 20
+        // );
 }
 
 /**
