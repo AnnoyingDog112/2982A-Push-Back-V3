@@ -202,20 +202,9 @@ void competition_initialize() {}
  */
 
 void autonomous() {
-	chassis.setPose(-48.634, 15.888, 0); // set starting pose
-        chassis.follow(A2982A_Skills_Auto_V3_txt, 10, 5000, true, true);
-        // intake1_move(true);
-        // intake2_move(true);
-        // wing_descore_move(true);
-	// chassis.moveToPose(-63, 47, 270, 10000);
-        // // chassis.moveToPoint(-50, 47, 10000);
-        // // chassis.turnToHeading(270, 5000);
-        // match_load_move(true);
-        // chassis.moveToPoint(-63, 47, 5000);
-        // pros::delay(2000);
-        // intake2_move(false);
-        // intake1_move(false);
-        // chassis.moveToPoint(-47, 47, 10000);
+        chassis.setPose(0, 0, 0); // set starting pose
+        pros::delay(100); // small delay to ensure pose is set
+        chassis.moveToPoint(0, 24, 10000); // move to (0, 24) inches
 }
 
 /**
