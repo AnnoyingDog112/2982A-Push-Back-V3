@@ -1,5 +1,9 @@
 #include "main.h"
 
+
+
+ASSET(A2982A_Skills_Auto_V3_txt);
+
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
 
@@ -10,7 +14,6 @@ Drivetrain drivetrain(&left_motors, // left motor group
                               450, // drivetrain rpm is 360
                               2 // horizontal drift is 2 (for now)
 );
-
 Imu imu(20);
 
 // Tracking wheels //
@@ -20,15 +23,16 @@ Rotation horizontal_tracking_sensor(-9);
 
 Rotation vertical_tracking_sensor(-10);
 
+
 // Setup tracking wheels
 TrackingWheel horizontal_tracking_wheel(&horizontal_tracking_sensor, 
-												Omniwheel::NEW_325, 
-												-2.5
+						Omniwheel::NEW_325, 
+						-2.5
 );
 
 TrackingWheel vertical_tracking_wheel(&vertical_tracking_sensor, 
-												Omniwheel::NEW_325, 
-												0
+        Omniwheel::NEW_325, 
+             0
 );
 
 // --- ODOMETRY --- //
@@ -46,35 +50,35 @@ OdomSensors sensors(&vertical_tracking_wheel, // vertical tracking wheel 1
 // lateral PID controller
 ControllerSettings lateral_controller(10, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              3, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in inches
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in inches
-                                              500, // large error range timeout, in milliseconds
-                                              20 // maximum acceleration (slew)
+                                              9, // derivative gain (kD)
+                                              0, // anti windup
+                                              0, // small error range, in inches
+                                              00, // small error range timeout, in milliseconds
+                                              0, // large error range, in inches
+                                              00, // large error range timeout, in milliseconds
+                                              0 // maximum acceleration (slew)
 );
 
 // angular PID controller
 ControllerSettings angular_controller(2, // proportional gain (kP)
-                                              0, // integral gain (kI)
-                                              10, // derivative gain (kD)
-                                              3, // anti windup
-                                              1, // small error range, in degrees
-                                              100, // small error range timeout, in milliseconds
-                                              3, // large error range, in degrees
-                                              500, // large error range timeout, in milliseconds
+                                              0.0, // integral gain (kI)
+                                              14, // derivative gain (kD)
+                                              1.5, // anti windup
+                                              0, // small error range, in degrees
+                                              0, // small error range timeout, in milliseconds
+                                              0, // large error range, in degrees
+                                              0, // large error range timeout, in milliseconds
                                               0 // maximum acceleration (slew)
 );
 
 // input curve for throttle input during driver control
-lemlib::ExpoDriveCurve throttle_curve(8, // joystick deadband out of 127
+ExpoDriveCurve throttle_curve(8, // joystick deadband out of 127
                                      13, // minimum output where drivetrain will move out of 127
                                      1.02 // expo curve gain
 );
 
 // input curve for steer input during driver control
-lemlib::ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
+ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
                                   18, // minimum output where drivetrain will move out of 127
                                   1.02 // expo curve gain
 );
@@ -89,12 +93,12 @@ Chassis chassis(drivetrain, // drivetrain settings
 
 Controller controller(pros::E_CONTROLLER_MASTER);
 
-Motor stage1_intake_motor(7, MotorGearset::blue); // stage 1 intake motor on port 7
-Motor stage2_intake_motor(8, MotorGearset::blue); // stage 2 intake motor on port 8
+Motor intake1(7, MotorGearset::blue); // stage 1 intake motor on port 7
+Motor intake2(8, MotorGearset::blue); // stage 2 intake motor on port 8
 
-adi::Pneumatics trapdoor('C', true);
-adi::Pneumatics match_load('G', true);
-adi::Pneumatics wing_descore('E', false);
+pros::adi::Pneumatics trapdoor('C', true);
+pros::adi::Pneumatics match_load('G', true);
+pros::adi::Pneumatics wing_descore('E', true);
 
 // --- HELPER FUNCTIONS --- //
 
@@ -107,34 +111,33 @@ void match_load_move(bool down_up){
 void wing_descore_move(bool up_down){
         wing_descore.set_value(up_down);
 }
-void intake_stg1_move(bool intake){
+void intake1_move(bool intake){
         if (intake){
-                stage1_intake_motor.move_velocity(600);
+                intake1.move_velocity(600);
         }
         else{
-                stage1_intake_motor.move_velocity(-600);
+                intake1.move_velocity(-600);
         }
 }
-void intake_stg2_move(bool cycle){
+void intake2_move(bool cycle){
         if (cycle){
-                stage2_intake_motor.move_velocity(600);
+                intake2.move_velocity(600);
         }
         else{
-                stage2_intake_motor.move_velocity(-600);
+                intake2.move_velocity(-600);
         }
 }
-
-void intake_stg1_stop(){
-        stage1_intake_motor.move_velocity(0);
+void intake1_stop(){
+        intake1.move_velocity(0);
 }
-void intake_stg2_stop(){
-        stage2_intake_motor.move_velocity(0);
+void intake2_stop(){
+        intake2.move_velocity(0);
 }
-void intake_stg1_move_velocity_percent(int velocity){
-        stage1_intake_motor.move_velocity(velocity*6);
+void intake1_move_velocity_percent(int velocity){
+        intake1.move_velocity(velocity*6);
 }
-void intake_stg2_move_velocity_percent(int velocity){
-        stage2_intake_motor.move_velocity(velocity*6);
+void intake2_move_velocity_percent(int velocity){
+        intake2.move_velocity(velocity*6);
 }
 
 int loop_delay_ms = 20;
@@ -154,7 +157,6 @@ bool wing_descore_O_F = false;
 void initialize() {
         lcd::initialize();
         chassis.calibrate(); // calibrate sensors
-    
         // print position to brain screen
         pros::Task screen_task([&]() {
                 while (true) {
@@ -166,7 +168,7 @@ void initialize() {
                         pros::delay(20);
                 }
         });
-        // autonomous();
+        autonomous();
 }
 
 /**
@@ -198,7 +200,11 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+
 void autonomous() {
+        chassis.setPose(0, 0, 0); // set starting pose
+        pros::delay(100); // small delay to ensure pose is set
+        chassis.moveToPoint(0, 24, 10000); // move to (0, 24) inches
 }
 
 /**
@@ -221,23 +227,23 @@ void opcontrol() {
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
                 if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
-                        intake_stg2_move(true);
+                        intake2_move(true);
                 }
                 else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
-                        intake_stg2_move(false);
+                        intake2_move(false);
                 }
                 else{
-                        intake_stg2_stop();
+                        intake2_stop();
                 }
                 
                 if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
-                        intake_stg1_move(true);
+                        intake1_move(true);
                 }
                 else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)){
-                        intake_stg1_move(false);
+                        intake1_move(false);
                 }
                 else{
-                        intake_stg1_stop();
+                        intake1_stop();
                 }
 
 
