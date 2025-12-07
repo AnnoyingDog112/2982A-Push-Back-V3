@@ -171,8 +171,10 @@ void initialize() {
                         pros::lcd::print(3, "Horizontal Rotation Sensor: %i", horizontal_tracking_sensor.get_position());
                         // print measurements from the vertical rotation sensor
                         pros::lcd::print(4, "Vertial Rotation Sensor: %i", vertical_tracking_sensor.get_position());
-                        
-
+						
+						pros::lcd::print(5, "Vertial Rotation Sensor Port: %i", vertical_tracking_sensor.get_port());
+						pros::lcd::print(6, "Horizontal Rotation Sensor Port: %i", horizontal_tracking_sensor.get_port());
+						
                         // delay to save resources
                         pros::delay(20);
                 }
