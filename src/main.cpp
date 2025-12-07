@@ -2,7 +2,7 @@
 
 
 
-ASSET(A2982A_Skills_Auto_V3_txt);
+ASSET(skills_path_jerryio_txt);
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -32,7 +32,7 @@ TrackingWheel horizontal_tracking_wheel(&horizontal_tracking_sensor,
 
 TrackingWheel vertical_tracking_wheel(&vertical_tracking_sensor, 
         Omniwheel::NEW_325, 
-             0
+             1
 );
 
 // --- ODOMETRY --- //
@@ -86,10 +86,12 @@ ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
 Chassis chassis(drivetrain, // drivetrain settings
                         lateral_controller, // lateral PID settings
                         angular_controller, // angular PID settings
-                        sensors, // odometry sensors
-						&throttle_curve, // throttle input curve
-						&steer_curve // steer input curve
-);
+                        sensors, /*
+);/*/
+                         // odometry sensors
+			&throttle_curve, // throttle input curve
+			&steer_curve // steer input curve
+);//*/
 
 Controller controller(pros::E_CONTROLLER_MASTER);
 
@@ -156,14 +158,21 @@ bool wing_descore_O_F = false;
  */
 void initialize() {
         lcd::initialize();
-        chassis.calibrate(); // calibrate sensors
+        chassis.calibrate(true); // calibrate sensors
         // print position to brain screen
+        chassis.setPose(0, 0, 0); // set starting pose
         pros::Task screen_task([&]() {
                 while (true) {
                         // print robot location to the brain screen
                         pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
                         pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
                         pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
+                        
+                        // print measurements from the horizontal rotation sensor
+                        pros::lcd::print(3, "Horizontal Rotation Sensor: %i", horizontal_tracking_sensor.get_position());
+                        // print measurements from the vertical rotation sensor
+                        pros::lcd::print(4, "Vertial Rotation Sensor: %i", vertical_tracking_sensor.get_position());
+
                         // delay to save resources
                         pros::delay(20);
                 }
@@ -203,19 +212,34 @@ void competition_initialize() {}
 
 void autonomous() {
 	chassis.setPose(-48.634, 15.888, 0); // set starting pose
-        chassis.follow(A2982A_Skills_Auto_V3_txt, 10, 5000, true, true);
-        // intake1_move(true);
-        // intake2_move(true);
-        // wing_descore_move(true);
-	// chassis.moveToPose(-63, 47, 270, 10000);
-        // // chassis.moveToPoint(-50, 47, 10000);
-        // // chassis.turnToHeading(270, 5000);
-        // match_load_move(true);
-        // chassis.moveToPoint(-63, 47, 5000);
-        // pros::delay(2000);
-        // intake2_move(false);
-        // intake1_move(false);
-        // chassis.moveToPoint(-47, 47, 10000);
+        // chassis.follow(skills_path.jerryio.txt, 10, 5000, true, true);
+        intake1_move(true);
+        wing_descore_move(true);
+// Loader #1
+	chassis.moveToPose(-60, 47, 270, 10000);
+        match_load_move(true);
+        chassis.moveToPoint(-65, 47, 5000);
+        pros::delay(2000);
+        chassis.moveToPoint(-34, 47, 5000);
+        match_load_move(false);
+        chassis.setPose(-34, 47, 270);
+        chassis.moveToPose(-11, 60, 90, 5000, {.minSpeed = 20, .earlyExitRange = 3});
+        chassis.moveToPose(42, 47, 90, 5000);
+        chassis.moveToPoint(27, 47, 5000, {.forwards = false});
+        intake2_move(true);
+        match_load_move(true);
+        pros::delay(3000);
+// Loader #2
+        chassis.moveToPoint(62, 47, 5000);
+        pros::delay(2000);
+        chassis.moveToPoint(27, 47, 5000);
+        intake2_move(true);
+        match_load_move(false);
+        pros::delay(3000);
+pros::delay(20);
+// Loader #3
+
+
 }
 
 /**
