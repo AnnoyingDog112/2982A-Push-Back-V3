@@ -177,7 +177,7 @@ void initialize() {
 			pros::lcd::print(6, "Horizontal Rotation Sensor Port: %i", horizontal_tracking_sensor.get_port());
 						
                         // delay to save resources
-                        pros::delay(20);
+                        pros::delay(50);
                 }
         });
         // autonomous();
