@@ -1,4 +1,8 @@
 #include "main.h"
+#include "lemlib/chassis/chassis.hpp"
+#include "lemlib/chassis/trackingWheel.hpp"
+#include "pros/adi.hpp"
+#include "pros/motors.h"
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
 MotorGroup right_motors({4, 5, 6}, MotorGearset::blue); // right motors on ports 4, 5, 6
@@ -95,6 +99,7 @@ Motor stage2_intake_motor(8, MotorGearset::blue); // stage 2 intake motor on por
 adi::Pneumatics trapdoor('C', true);
 adi::Pneumatics match_load('G', true);
 adi::Pneumatics wing_descore('E', false);
+adi::Pneumatics tracking_wheel_lifter('A', false);
 
 // --- HELPER FUNCTIONS --- //
 
@@ -107,6 +112,9 @@ void match_load_move(bool down_up){
 void wing_descore_move(bool up_down){
         wing_descore.set_value(up_down);
 }
+void tracking_wheel_lifter_move(bool up_down){
+        tracking_wheel_lifter.set_value(!up_down);
+}
 void intake_stg1_move(bool intake){
         if (intake){
                 stage1_intake_motor.move_velocity(600);
@@ -115,8 +123,8 @@ void intake_stg1_move(bool intake){
                 stage1_intake_motor.move_velocity(-600);
         }
 }
-void intake_stg2_move(bool cycle){
-        if (cycle){
+void intake_stg2_move(bool score){
+        if (score){
                 stage2_intake_motor.move_velocity(600);
         }
         else{
@@ -154,7 +162,7 @@ bool wing_descore_O_F = false;
 void initialize() {
         lcd::initialize();
         chassis.calibrate(); // calibrate sensors
-    
+        chassis.setBrakeMode(E_MOTOR_BRAKE_COAST);
         // print position to brain screen
         pros::Task screen_task([&]() {
                 while (true) {
@@ -163,9 +171,10 @@ void initialize() {
                         pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
                         pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
                         // delay to save resources
-                        pros::delay(20);
+                        pros::delay(50);
                 }
         });
+        tracking_wheel_lifter_move(false);
         // autonomous();
 }
 
@@ -174,7 +183,11 @@ void initialize() {
  * the VEX Competition Switch, following either autonomous or opcontrol. When
  * the robot is enabled, this task will exit.
  */
-void disabled() {}
+void disabled() {
+        chassis.arcade(0, 0, true);
+        intake_stg1_stop();
+        intake_stg2_stop();
+}
 
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
@@ -185,7 +198,9 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+        tracking_wheel_lifter_move(true);
+}
 
 /**
  * Runs the user autonomous code. This function will be started in its own task
@@ -199,6 +214,28 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
+        chassis.setPose(62.5, -16.5, 270);
+
+        intake_stg1_move(true);
+        intake_stg2_move(false);
+        
+        chassis.swingToPoint(22, -22, DriveSide::LEFT, 1000, {}, false);
+        chassis.moveToPoint(22, -22, 2000, {}, false);
+
+        chassis.turnToPoint(47, -47, 1000, {}, false);
+        chassis.moveToPoint(47, -47, 2000, {}, false);
+        
+        chassis.turnToPoint(66, -47, 2000, {}, false);
+        chassis.moveToPoint(66, -47, 2000, {}, false);
+        chassis.arcade(60, 0, true);
+        delay(3000);
+
+        chassis.moveToPoint(27, -47, 2000, {.forwards=false}, false);
+        intake_stg2_move(true);
+        chassis.arcade(127, 0, true);
+        delay(3000);
+        chassis.moveToPoint(30, 47, 1000, {}, false);
+        chassis.moveToPoint(20, 47, 1000, {.forwards=false}, false);
 }
 
 /**
