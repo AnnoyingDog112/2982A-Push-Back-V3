@@ -97,7 +97,7 @@ Motor stage1_intake_motor(7, MotorGearset::blue); // stage 1 intake motor on por
 Motor stage2_intake_motor(8, MotorGearset::blue); // stage 2 intake motor on port 8
 
 adi::Pneumatics trapdoor('C', true);
-adi::Pneumatics match_load('G', true);
+adi::Pneumatics match_load('G', false);
 adi::Pneumatics wing_descore('E', false);
 adi::Pneumatics tracking_wheel_lifter('A', false);
 
@@ -174,7 +174,7 @@ void initialize() {
                         pros::delay(50);
                 }
         });
-        tracking_wheel_lifter_move(false);
+        // tracking_wheel_lifter_move(false);
         // autonomous();
 }
 
@@ -253,9 +253,9 @@ void autonomous() {
  */
 void opcontrol() {
 	while (true) {
-        // get left y and right x positions
-        int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-        int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+                // get left y and right x positions
+                int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+                int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
                 if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
                         intake_stg2_move(true);

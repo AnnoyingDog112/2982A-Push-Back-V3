@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "Dev",
+    "project_name": "Drive Code",
     "target": "v5",
     "templates": {
       "LemLib": {
@@ -652,8 +652,8 @@
       }
     },
     "upload_options": {
-      "description": "Developer program",
-      "slot": 3
+      "description": "Drive Program",
+      "slot": 1
     },
     "use_early_access": false
   }
