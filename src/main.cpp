@@ -15,19 +15,20 @@ Imu imu(20);
 // Tracking wheels //
 
 // Sensors for tracking wheels
-Rotation horizontal_tracking_sensor(-9);
+pros::Rotation horizontal_tracking_sensor(-9);
 
-Rotation vertical_tracking_sensor(-10);
+pros::Rotation vertical_tracking_sensor(-10);
+
 
 // Setup tracking wheels
 TrackingWheel horizontal_tracking_wheel(&horizontal_tracking_sensor, 
-					Omniwheel::NEW_325, 
-					-2.5
+						Omniwheel::NEW_325, 
+						-2.5
 );
 
 TrackingWheel vertical_tracking_wheel(&vertical_tracking_sensor, 
-					Omniwheel::NEW_325, 
-					0
+        Omniwheel::NEW_325, 
+             1
 );
 
 // --- ODOMETRY --- //
@@ -67,13 +68,13 @@ ControllerSettings angular_controller(2, // proportional gain (kP)
 );
 
 // input curve for throttle input during driver control
-lemlib::ExpoDriveCurve throttle_curve(8, // joystick deadband out of 127
+ExpoDriveCurve throttle_curve(8, // joystick deadband out of 127
                                      13, // minimum output where drivetrain will move out of 127
                                      1.02 // expo curve gain
 );
 
 // input curve for steer input during driver control
-lemlib::ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
+ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
                                   18, // minimum output where drivetrain will move out of 127
                                   1.02 // expo curve gain
 );
@@ -81,15 +82,17 @@ lemlib::ExpoDriveCurve steer_curve(8, // joystick deadband out of 127
 Chassis chassis(drivetrain, // drivetrain settings
                         lateral_controller, // lateral PID settings
                         angular_controller, // angular PID settings
-                        sensors, // odometry sensors
-						&throttle_curve, // throttle input curve
-						&steer_curve // steer input curve
-);
+                        sensors, /*
+);/*/
+                         // odometry sensors
+			&throttle_curve, // throttle input curve
+			&steer_curve // steer input curve
+);//*/
 
 Controller controller(pros::E_CONTROLLER_MASTER);
 
-Motor stage1_intake_motor(7, MotorGearset::blue); // stage 1 intake motor on port 7
-Motor stage2_intake_motor(8, MotorGearset::blue); // stage 2 intake motor on port 8
+Motor intake1(7, MotorGearset::blue); // stage 1 intake motor on port 7
+Motor intake2(8, MotorGearset::blue); // stage 2 intake motor on port 8
 
 adi::Pneumatics trapdoor('C', true);
 adi::Pneumatics match_load('G', false);
@@ -110,34 +113,33 @@ void wing_descore_move(bool up_down){
 void tracking_wheel_lifter_move(bool up_down){
         tracking_wheel_lifter.set_value(!up_down);
 }
-void intake_stg1_move(bool intake){
+void intake1_move(bool intake){
         if (intake){
-                stage1_intake_motor.move_velocity(600);
+                intake1.move_velocity(600);
         }
         else{
-                stage1_intake_motor.move_velocity(-600);
+                intake1.move_velocity(-600);
         }
 }
-void intake_stg2_move(bool score){
-        if (score){
-                stage2_intake_motor.move_velocity(600);
+void intake2_move(bool cycle){
+        if (cycle){
+                intake2.move_velocity(600);
         }
         else{
-                stage2_intake_motor.move_velocity(-600);
+                intake2.move_velocity(-600);
         }
 }
-
-void intake_stg1_stop(){
-        stage1_intake_motor.move_velocity(0);
+void intake1_stop(){
+        intake1.move_velocity(0);
 }
-void intake_stg2_stop(){
-        stage2_intake_motor.move_velocity(0);
+void intake2_stop(){
+        intake2.move_velocity(0);
 }
-void intake_stg1_move_velocity_percent(int velocity){
-        stage1_intake_motor.move_velocity(velocity*6);
+void intake1_move_velocity_percent(int velocity){
+        intake1.move_velocity(velocity*6);
 }
-void intake_stg2_move_velocity_percent(int velocity){
-        stage2_intake_motor.move_velocity(velocity*6);
+void intake2_move_velocity_percent(int velocity){
+        intake2.move_velocity(velocity*6);
 }
 
 int loop_delay_ms = 20;
@@ -156,15 +158,24 @@ bool wing_descore_O_F = false;
  */
 void initialize() {
         lcd::initialize();
-        chassis.calibrate(); // calibrate sensors
-        // chassis.setBrakeMode(E_MOTOR_BRAKE_COAST);
+        chassis.calibrate(true); // calibrate sensors
         // print position to brain screen
+        chassis.setPose(0, 0, 0); // set starting pose
         pros::Task screen_task([&]() {
                 while (true) {
                         // print robot location to the brain screen
                         pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
                         pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
                         pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
+                        
+                        // print measurements from the horizontal rotation sensor
+                        pros::lcd::print(3, "Horizontal Rotation Sensor: %i", horizontal_tracking_sensor.get_position());
+                        // print measurements from the vertical rotation sensor
+                        pros::lcd::print(4, "Vertial Rotation Sensor: %i", vertical_tracking_sensor.get_position());
+						
+			pros::lcd::print(5, "Vertial Rotation Sensor Port: %i", vertical_tracking_sensor.get_port());
+			pros::lcd::print(6, "Horizontal Rotation Sensor Port: %i", horizontal_tracking_sensor.get_port());
+						
                         // delay to save resources
                         pros::delay(50);
                 }
@@ -180,8 +191,8 @@ void initialize() {
  */
 void disabled() {
         chassis.arcade(0, 0, true);
-        intake_stg1_stop();
-        intake_stg2_stop();
+        intake1_stop();
+        intake2_stop();
 }
 
 /**
@@ -208,11 +219,12 @@ void competition_initialize() {
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
+
 void autonomous() {
         chassis.setPose(62.5, -16.5, 270);
 
-        intake_stg1_move(true);
-        intake_stg2_move(false);
+        intake1_move(true);
+        intake2_move(false);
         
         chassis.swingToPoint(22, -22, DriveSide::LEFT, 1000, {}, false);
         chassis.moveToPoint(22, -22, 4000, {}, false);
@@ -226,7 +238,7 @@ void autonomous() {
         delay(3000);
 
         chassis.moveToPoint(27, -47, 2000, {.forwards=false}, false);
-        intake_stg2_move(true);
+        intake2_move(true);
         chassis.arcade(127, 0, true);
         delay(3000);
         chassis.moveToPoint(30, 47, 1000, {}, false);
@@ -253,23 +265,23 @@ void opcontrol() {
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
 
                 if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
-                        intake_stg2_move(true);
+                        intake2_move(true);
                 }
                 else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
-                        intake_stg2_move(false);
+                        intake2_move(false);
                 }
                 else{
-                        intake_stg2_stop();
+                        intake2_stop();
                 }
                 
                 if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
-                        intake_stg1_move(true);
+                        intake1_move(true);
                 }
                 else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)){
-                        intake_stg1_move(false);
+                        intake1_move(false);
                 }
                 else{
-                        intake_stg1_stop();
+                        intake1_stop();
                 }
 
 

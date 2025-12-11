@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "Auto code",
+    "project_name": "Skills",
     "target": "v5",
     "templates": {
       "LemLib": {
@@ -652,9 +652,9 @@
       }
     },
     "upload_options": {
-      "description": "Auto code",
-      "slot": 2,
-      "after": "screen"
+      "description": "Skills",
+      "slot": 4,
+      "icon": "pros"
     },
     "use_early_access": false
   }
