@@ -21,13 +21,13 @@ Rotation vertical_tracking_sensor(-10);
 
 // Setup tracking wheels
 TrackingWheel horizontal_tracking_wheel(&horizontal_tracking_sensor, 
-												Omniwheel::NEW_325, 
-												-2.5
+					Omniwheel::NEW_325, 
+					-2.5
 );
 
 TrackingWheel vertical_tracking_wheel(&vertical_tracking_sensor, 
-												Omniwheel::NEW_325, 
-												0
+					Omniwheel::NEW_325, 
+					0
 );
 
 // --- ODOMETRY --- //
@@ -47,10 +47,10 @@ ControllerSettings lateral_controller(10, // proportional gain (kP)
                                               0, // integral gain (kI)
                                               9, // derivative gain (kD)
                                               0, // anti windup
-                                              0, // small error range, in inches
-                                              00, // small error range timeout, in milliseconds
-                                              0, // large error range, in inches
-                                              00, // large error range timeout, in milliseconds
+                                              1, // small error range, in inches
+                                              200, // small error range timeout, in milliseconds
+                                              5, // large error range, in inches
+                                              500, // large error range timeout, in milliseconds
                                               0 // maximum acceleration (slew)
 );
 
@@ -157,7 +157,7 @@ bool wing_descore_O_F = false;
 void initialize() {
         lcd::initialize();
         chassis.calibrate(); // calibrate sensors
-        chassis.setBrakeMode(E_MOTOR_BRAKE_COAST);
+        // chassis.setBrakeMode(E_MOTOR_BRAKE_COAST);
         // print position to brain screen
         pros::Task screen_task([&]() {
                 while (true) {
@@ -170,7 +170,7 @@ void initialize() {
                 }
         });
         tracking_wheel_lifter_move(false);
-        // autonomous();
+        autonomous();
 }
 
 /**
@@ -215,7 +215,7 @@ void autonomous() {
         intake_stg2_move(false);
         
         chassis.swingToPoint(22, -22, DriveSide::LEFT, 1000, {}, false);
-        chassis.moveToPoint(22, -22, 2000, {}, false);
+        chassis.moveToPoint(22, -22, 4000, {}, false);
 
         chassis.turnToPoint(47, -47, 1000, {}, false);
         chassis.moveToPoint(47, -47, 2000, {}, false);
