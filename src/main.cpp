@@ -1,7 +1,6 @@
 #include "main.h"
 
 
-
 ASSET(skills_path_jerryio_txt);
 
 MotorGroup left_motors({-1, -2, -3}, MotorGearset::blue); // left motors on ports 1, 2, 3, but reversed
@@ -32,7 +31,7 @@ TrackingWheel horizontal_tracking_wheel(&horizontal_tracking_sensor,
 
 TrackingWheel vertical_tracking_wheel(&vertical_tracking_sensor, 
         Omniwheel::NEW_325, 
-             1
+             0
 );
 
 // --- ODOMETRY --- //
@@ -50,13 +49,13 @@ OdomSensors sensors(&vertical_tracking_wheel, // vertical tracking wheel 1
 // lateral PID controller
 ControllerSettings lateral_controller(10, // proportional gain (kP)
                                               0, // integral gain (kI)
-                                              9, // derivative gain (kD)
-                                              0, // anti windup
-                                              0, // small error range, in inches
-                                              00, // small error range timeout, in milliseconds
-                                              0, // large error range, in inches
-                                              00, // large error range timeout, in milliseconds
-                                              0 // maximum acceleration (slew)
+                                              3, // derivative gain (kD) (9)
+                                              3, // anti windup
+                                              1, // small error range, in inches
+                                              100, // small error range timeout, in milliseconds
+                                              3, // large error range, in inches
+                                              500, // large error range timeout, in milliseconds
+                                              20 // maximum acceleration (slew)
 );
 
 // angular PID controller
@@ -65,9 +64,9 @@ ControllerSettings angular_controller(2, // proportional gain (kP)
                                               14, // derivative gain (kD)
                                               1.5, // anti windup
                                               0, // small error range, in degrees
-                                              0, // small error range timeout, in milliseconds
+                                              100, // small error range timeout, in milliseconds
                                               0, // large error range, in degrees
-                                              0, // large error range timeout, in milliseconds
+                                              500, // large error range timeout, in milliseconds
                                               0 // maximum acceleration (slew)
 );
 
@@ -101,6 +100,7 @@ Motor intake2(8, MotorGearset::blue); // stage 2 intake motor on port 8
 pros::adi::Pneumatics trapdoor('C', true);
 pros::adi::Pneumatics match_load('G', true);
 pros::adi::Pneumatics wing_descore('E', true);
+pros::adi::Pneumatics horizontal_odom_wheel('A', true);
 
 // --- HELPER FUNCTIONS --- //
 
@@ -112,6 +112,9 @@ void match_load_move(bool down_up){
 }
 void wing_descore_move(bool up_down){
         wing_descore.set_value(up_down);
+}
+void horizontal_odom_wheel_move(bool up_down){
+        horizontal_odom_wheel.set_value(up_down);
 }
 void intake1_move(bool intake){
         if (intake){
@@ -159,6 +162,7 @@ bool wing_descore_O_F = false;
 void initialize() {
         lcd::initialize();
         chassis.calibrate(true); // calibrate sensors
+        pros::delay(500); // wait for imu to calibrate
         // print position to brain screen
         chassis.setPose(0, 0, 0); // set starting pose
         pros::Task screen_task([&]() {
@@ -173,14 +177,11 @@ void initialize() {
                         // print measurements from the vertical rotation sensor
                         pros::lcd::print(4, "Vertial Rotation Sensor: %i", vertical_tracking_sensor.get_position());
 						
-			pros::lcd::print(5, "Vertial Rotation Sensor Port: %i", vertical_tracking_sensor.get_port());
-			pros::lcd::print(6, "Horizontal Rotation Sensor Port: %i", horizontal_tracking_sensor.get_port());
-						
                         // delay to save resources
                         pros::delay(50);
                 }
         });
-        // autonomous();
+        autonomous();
 }
 
 /**
@@ -214,33 +215,50 @@ void competition_initialize() {}
  */
 
 void autonomous() {
+// Setup
 	chassis.setPose(-48.634, 15.888, 0); // set starting pose
         // chassis.follow(skills_path.jerryio.txt, 10, 5000, true, true);
-        intake1_move(true);
         wing_descore_move(true);
+        trapdoor_move(false);
+        horizontal_odom_wheel_move(true);
 // Loader #1
-	chassis.moveToPose(-60, 47, 270, 10000);
         match_load_move(true);
-        chassis.moveToPoint(-65, 47, 5000);
-        pros::delay(2000);
-        chassis.moveToPoint(-34, 47, 5000);
-        match_load_move(false);
-        chassis.setPose(-34, 47, 270);
-        chassis.moveToPose(-11, 60, 90, 5000, {.minSpeed = 20, .earlyExitRange = 3});
-        chassis.moveToPose(42, 47, 90, 5000);
-        chassis.moveToPoint(27, 47, 5000, {.forwards = false});
+        pros::delay(500);
+        // chassis.moveToPose(-60, 47, -90, 10000);
+        chassis.moveToPoint(-48.634, 50, 5000, {.maxSpeed = 60});
+        // chassis.swingToHeading(-90, DriveSide::LEFT, 5000, {}, false); // bot ends up at x = -61, y = 26 
+        pros::delay(10);
+        chassis.turnToHeading(-90, 5000);
+        pros::delay(10);
+        chassis.moveToPoint(-62, 45, 5000);
+        pros::delay(10);
+        // chassis.moveToPoint(-48, 40, 5000, {.minSpeed = 30, .earlyExitRange = 10}); // test
+        // chassis.moveToPoint(-48, 52, 5000);
+        intake1_move(true);
+        pros::delay(1000);
+        intake1_move(false);
+        chassis.moveToPoint(-47, 45, 5000, {.forwards = false});
+        chassis.setPose(-47, 45, 270);
+        chassis.moveToPose(-25, 60, 90, 5000, {.minSpeed = 20, .earlyExitRange = 8});
+        chassis.moveToPose(44, 47, 90, 5000);
+        chassis.moveToPoint(28, 47, 5000, {.forwards = false});
         intake2_move(true);
-        match_load_move(true);
-        pros::delay(3000);
-// Loader #2
-        chassis.moveToPoint(62, 47, 5000);
-        pros::delay(2000);
-        chassis.moveToPoint(27, 47, 5000);
-        intake2_move(true);
-        match_load_move(false);
-        pros::delay(3000);
-pros::delay(20);
-// Loader #3
+        pros::delay(1500);
+        intake2_move(false);
+// // Loader #2
+//         chassis.setPose(28, 47, 90);
+//         chassis.moveToPoint(62, 47, 5000);
+//         pros::delay(500);
+//         chassis.moveToPoint(27, 47, 5000, {.forwards = false});
+//         intake2_move(true);
+//         pros::delay(1500);
+// // Loader #3
+//         chassis.setPose(27, 47, 90);
+//         chassis.moveToPoint(36, 47, 10000);
+//         chassis.moveToPoint(36, -47, 10000, {.minSpeed = 100, .earlyExitRange = 0});
+//         chassis.turnToHeading(90, 5000, {.minSpeed = 80, .earlyExitRange = 0});
+//         chassis.moveToPoint(62, -47, 5000);
+
 
 
 }
