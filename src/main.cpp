@@ -165,6 +165,7 @@ void initialize() {
         pros::delay(500); // wait for imu to calibrate
         // print position to brain screen
         chassis.setPose(0, 0, 0); // set starting pose
+        // chassis.setPose(48.634, 15.888, 0);
         pros::Task screen_task([&]() {
                 while (true) {
                         // print robot location to the brain screen
@@ -181,7 +182,7 @@ void initialize() {
                         pros::delay(50);
                 }
         });
-        autonomous();
+        // autonomous();
 }
 
 /**
@@ -216,36 +217,55 @@ void competition_initialize() {}
 
 void autonomous() {
 // Setup
-	chassis.setPose(-48.634, 15.888, 0); // set starting pose
+	// chassis.setPose(-48.634, 15.888, 0); // set starting pose
+        chassis.setPose(0, 0, 0);
         // chassis.follow(skills_path.jerryio.txt, 10, 5000, true, true);
         wing_descore_move(true);
         trapdoor_move(false);
         horizontal_odom_wheel_move(true);
 // Loader #1
+        // match_load_move(true);
+        // pros::delay(500);
+        // // chassis.moveToPose(-60, 47, -90, 10000);
+        // chassis.moveToPoint(-48.634, 50, 3000, {.maxSpeed = 60});
+        // // chassis.swingToHeading(-90, DriveSide::LEFT, 5000, {}, false); // bot ends up at x = -61, y = 26 
+        // chassis.turnToHeading(-90, 1000);
+        // pros::delay(10);
+        // chassis.moveToPoint(-64, 47, 2000);
+        // // chassis.moveToPoint(-48, 40, 5000, {.minSpeed = 30, .earlyExitRange = 10}); // test
+        // // chassis.moveToPoint(-48, 52, 5000);
+        // intake1_move(true);
+        // pros::delay(2000);
+        // intake1_stop();
+        // chassis.moveToPoint(-47, 44, 5000, {.forwards = false, .maxSpeed = 30});
+        // chassis.setPose(-47, 47, -90);
+        // // chassis.moveToPose(-16, 31, 90, 5000, {.minSpeed = 60});
+        // chassis.moveToPose(-20, 60, 90, 5000, {.minSpeed = 40});
+        // chassis.moveToPose(24, 47, 90, 5000, {.minSpeed = 40});
+        // chassis.moveToPoint(44, 47, 3000, {.forwards = false});
+//         intake2_move(true);
+//         pros::delay(2000);
+//         intake2_move(false);
+
         match_load_move(true);
         pros::delay(500);
-        // chassis.moveToPose(-60, 47, -90, 10000);
-        chassis.moveToPoint(-48.634, 50, 5000, {.maxSpeed = 60});
-        // chassis.swingToHeading(-90, DriveSide::LEFT, 5000, {}, false); // bot ends up at x = -61, y = 26 
-        pros::delay(10);
-        chassis.turnToHeading(-90, 5000);
-        pros::delay(10);
-        chassis.moveToPoint(-62, 45, 5000);
-        pros::delay(10);
-        // chassis.moveToPoint(-48, 40, 5000, {.minSpeed = 30, .earlyExitRange = 10}); // test
-        // chassis.moveToPoint(-48, 52, 5000);
+        chassis.moveToPoint(0, 32, 3000);
+        chassis.turnToHeading(-90, 3000);
+        chassis.moveToPoint(14, 31, 3000);
         intake1_move(true);
-        pros::delay(1000);
-        intake1_move(false);
-        chassis.moveToPoint(-47, 45, 5000, {.forwards = false});
-        chassis.setPose(-47, 45, 270);
-        chassis.moveToPose(-25, 60, 90, 5000, {.minSpeed = 20, .earlyExitRange = 8});
-        chassis.moveToPose(44, 47, 90, 5000);
-        chassis.moveToPoint(28, 47, 5000, {.forwards = false});
+        pros::delay(2000);
+        intake1_stop();
+        chassis.moveToPoint(-4, 31, 3000, {.forwards = false});
+        chassis.setPose(4, 31, 270);
+        chassis.moveToPose(21, 44, 90, 5000);
+        chassis.moveToPoint(92, 44, 5000);
+        chassis.moveToPoint(92, 31, 5000);
+        chassis.moveToPoint(76, 31, 3000, {.forwards = false});
         intake2_move(true);
-        pros::delay(1500);
-        intake2_move(false);
-// // Loader #2
+        pros::delay(2000);
+        intake2_stop();
+        
+// // // Loader #2
 //         chassis.setPose(28, 47, 90);
 //         chassis.moveToPoint(62, 47, 5000);
 //         pros::delay(500);
@@ -258,10 +278,8 @@ void autonomous() {
 //         chassis.moveToPoint(36, -47, 10000, {.minSpeed = 100, .earlyExitRange = 0});
 //         chassis.turnToHeading(90, 5000, {.minSpeed = 80, .earlyExitRange = 0});
 //         chassis.moveToPoint(62, -47, 5000);
-
-
-
 }
+
 
 /**
  * Runs the operator control code. This function will be started in its own task
