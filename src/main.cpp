@@ -182,7 +182,7 @@ void initialize() {
                         pros::delay(50);
                 }
         });
-        // autonomous();
+        autonomous();
 }
 
 /**
@@ -249,30 +249,33 @@ void autonomous() {
 
         match_load_move(true);
         pros::delay(500);
-        chassis.moveToPoint(0, 32, 3000);
-        chassis.turnToHeading(-90, 3000);
-        chassis.moveToPoint(14, 31, 3000);
+        chassis.moveToPoint(0, 35, 3000, {.maxSpeed = 40}, false);
+        chassis.turnToHeading(-90, 1000, {}, false);
+        chassis.moveToPoint(-24, 30, 500, {.maxSpeed = 20}, false);
         intake1_move(true);
         pros::delay(2000);
         intake1_stop();
-        chassis.moveToPoint(-4, 31, 3000, {.forwards = false});
-        chassis.setPose(4, 31, 270);
-        chassis.moveToPose(21, 44, 90, 5000);
-        chassis.moveToPoint(92, 44, 5000);
-        chassis.moveToPoint(92, 31, 5000);
-        chassis.moveToPoint(76, 31, 3000, {.forwards = false});
+        chassis.moveToPoint(4, 30, 3000, {.forwards = false}, false);
+        match_load_move(false);
+        // chassis.setPose(4, 34, 270); // resets odom, could cause problems
+        chassis.turnToHeading(90, 3000);
+        chassis.moveToPose(21, 56, 90, 5000, {.lead = -0.5, .maxSpeed = 20}, false); // end pose increased from 44 to 52 to 54 to 56
+        chassis.moveToPoint(92, 44, 5000, {}, false);
+        chassis.moveToPoint(92, 31, 5000, {}, false);
+        chassis.moveToPoint(76, 31, 3000, {.forwards = false}, false);
         intake2_move(true);
         pros::delay(2000);
         intake2_stop();
         
-// // // Loader #2
+// Loader #2
 //         chassis.setPose(28, 47, 90);
 //         chassis.moveToPoint(62, 47, 5000);
 //         pros::delay(500);
 //         chassis.moveToPoint(27, 47, 5000, {.forwards = false});
 //         intake2_move(true);
 //         pros::delay(1500);
-// // Loader #3
+
+// Loader #3
 //         chassis.setPose(27, 47, 90);
 //         chassis.moveToPoint(36, 47, 10000);
 //         chassis.moveToPoint(36, -47, 10000, {.minSpeed = 100, .earlyExitRange = 0});
